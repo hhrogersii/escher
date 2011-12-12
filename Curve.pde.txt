@@ -1,0 +1,144 @@
+/*
+Trefoil knot:
+  x = sin(t) + 2sin(2t)
+  y = sin(3t)
+  z = cos(t) - 2cos(2t)
+  0 <= t <= 2Pi 
+*/
+// parameterization in 1995 PhD thesis of Aaron Trautwein at The University of Iowa is right hand trefoil
+
+class TrefoilCurve 
+{
+  float _scalar = 0.0;    // curve scaling factor
+  float _distance1 = 0.0; // distance from corner to first midpoint on side
+  float _distance2 = 0.0; // distance from corner to second midpoint on side
+
+  //---- constructor
+  
+  TrefoilCurve( int scalar, float midpoint1, float midpoint2 ) 
+  { 
+    _scalar = scalar;
+    _distance1 = midpoint1;
+    _distance2 = midpoint2;
+  }
+
+
+  //---- derivatives 
+  
+  // calculate first differential
+  private PVector dtFirst( float t )
+  { 
+    float x = _scalar * ( 3 * cos(3*t) );
+    float y = _scalar * ( 4 * cos(2*t) + cos(t) );
+    float z = _scalar * ( 4 * sin(2*t) - sin(t) );
+
+    return new PVector( x, y, z ) ;
+  }
+
+  // calculate second differential
+  private PVector dtSecond( float t )
+  { 
+    float x = _scalar * ( -9 * sin(3*t) );
+    float y = _scalar * ( -8 * sin(2*t) - sin(t) );
+    float z = _scalar * (  8 * cos(2*t) - cos(t) );
+    
+    return new PVector( x, y, z ) ;
+  }
+
+  //---- Frenet frame
+  
+  // orthagonal to the normal plane
+  private PVector getTangent( float t ) 
+  { 
+    PVector tangentVector = dtFirst(t);
+    tangentVector.normalize();
+
+    return tangentVector;
+  }
+  
+  // orthagonal to the rectifying plane
+  private PVector getNormal( float t ) 
+  { 
+    PVector normalVector = dtFirst(t).cross( dtSecond(t) ).cross( dtFirst(t) );
+    // PVector normalVector = dtSecond(t); // NO!
+    normalVector.normalize();
+    
+    return normalVector;
+  }
+
+  // orthagonal to the osculating plane
+  private PVector getBinormal( float t ) 
+  { 
+    PVector binormalVector = dtFirst(t).cross( dtSecond(t) );
+    binormalVector.normalize();
+    
+    return binormalVector;
+  }
+
+  // center of tube on curve
+  private PVector getOrigin( float t ) 
+  {
+    float x = _scalar * ( sin(3*t) );
+    float y = _scalar * ( sin(t) + 2*sin(2*t) );
+    float z = _scalar * ( cos(t) - 2*cos(2*t) );
+
+    return new PVector( x, y, z ) ;
+  }
+
+  // get points along side of tube
+  private PVector[] getPoints( PVector B, PVector N )
+  { 
+    PVector[] points = new PVector[4];
+    
+    points[0] = PVector.add( B, N );
+    points[3] = PVector.sub( B, N );
+    
+    // calculate side vector
+    PVector side = PVector.sub( points[3], points[0] ); 
+
+    points[1] = PVector.add( points[0], PVector.mult( side, _distance1 ) );
+    points[2] = PVector.add( points[0], PVector.mult( side, _distance2 ) );
+
+    return points;
+  }
+  
+  // -----------------
+  //  public function
+  // -----------------
+  
+  //  o -- o -- o -- o
+  //  |              |
+  //  o              o
+  //  |     tube     |
+  //  o              o
+  //  |              |
+  //  o -- o -- o -- o
+  
+  // build vectors for all points on side of tube
+  public PVector[] getSide( float theta, float mobius )
+  { 
+    PVector origin = getOrigin(theta);
+    PVector tangent = getTangent(theta);
+    PVector[] points = getPoints( getBinormal(theta), getNormal(theta) );
+    PVector[] side = new PVector[4];
+    PMatrix3D rotationMatrix = new PMatrix3D();
+    
+    // advance rotation matrix by side iterator plus mobius factor
+    rotationMatrix.rotate( mobius, tangent.x, tangent.y, tangent.z ); 
+    
+    // for each point on side
+    for ( int j=0; j<4; j++ )
+    {
+      side[j] = new PVector();
+      // rotate first
+      rotationMatrix.mult( points[j], side[j] );
+      // then translate
+      side[j].add( origin );
+    }
+
+    return side;
+  }
+  
+}
+
+

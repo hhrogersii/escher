@@ -1,0 +1,159 @@
+  void drawTube( int i, float mobius ) 
+  {
+    //  --0-- 
+    // 1|   |3
+    //  --2-- 
+    
+    int b = ( i + _b ) % _p; // intermediary
+    int t = ( i + _u ) % _p; // terminal
+    
+    // if showing gamut, advance hue interator else show orginal hue
+    int h = ( _g == 1 ) ? ceil( 360 - ( i / _u * 5 ) + _h ) % 360 : _o; 
+    
+    // get vectors for points along side of tube
+    PVector[] I = _k.getSide( i * TWO_PI / _p, mobius );
+    PVector[] B = _k.getSide( b * TWO_PI / _p, mobius );
+    PVector[] T = _k.getSide( t * TWO_PI / _p, mobius );
+
+    // 0___1___2__3   I
+    // |___    ___|   A
+    // 9   |__|   4   B
+    //     7  6
+    
+    noStroke();
+   
+    // if not in wireframe mode
+    if ( _w != 1 )
+    {
+      fill( h, 40, 60 );
+      
+      // if not in gamut mode
+      if ( _g != 1 )
+      {
+        //---- draw sides of tube as mesh with texture
+        beginShape(TRIANGLES);
+          texture( _t );
+    
+          vertex( I[0], 0.0, 0.0 );  //0
+          vertex( I[1], _d1, 0.0 );  //1
+          vertex( B[1], _d1, 0.5 );  //8
+          vertex( B[1], _d1, 0.5 );  //8
+          vertex( B[0], 0.0, 0.5 );  //9
+          vertex( I[0], 0.0, 0.0 );  //0
+          
+          vertex( I[1], _d1, 0.0 );  //1
+          vertex( I[2], _d2, 0.0 );  //2
+          vertex( B[2], _d2, 0.5 );  //5
+          vertex( B[2], _d2, 0.5 );  //5
+          vertex( B[1], _d1, 0.5 );  //8
+          vertex( I[1], _d1, 0.0 );  //1
+          
+          vertex( I[2], _d2, 0.0 );  //2
+          vertex( I[3], 1.0, 0.0 );  //3
+          vertex( B[3], 1.0, 0.5 );  //4
+          vertex( B[3], 1.0, 0.5 );  //4
+          vertex( B[2], _d2, 0.5 );  //5
+          vertex( I[2], _d2, 0.0 );  //2
+         
+          vertex( B[1], _d1, 0.5 );  //8
+          vertex( B[2], _d2, 0.5 );  //5
+          vertex( T[2], _d2, 1.0 );  //6
+          vertex( T[2], _d2, 0.95 ); //6
+          vertex( T[1], _d1, 0.95 ); //7
+          vertex( B[1], _d1, 0.5 );  //8
+          
+        endShape(CLOSE);
+      }
+      // in gamut mode
+      else
+      {
+        //---- draw sides of tube as mesh
+        beginShape(TRIANGLES);
+    
+          vertex( I[0] );  //0
+          vertex( I[1] );  //1
+          vertex( B[1] );  //8
+          vertex( B[1] );  //8
+          vertex( B[0] );  //9
+          vertex( I[0] );  //0
+          
+          vertex( I[1] );  //1
+          vertex( I[2] );  //2
+          vertex( B[2] );  //5
+          vertex( B[2] );  //5
+          vertex( B[1] );  //8
+          vertex( I[1] );  //1
+          
+          vertex( I[2] );  //2
+          vertex( I[3] );  //3
+          vertex( B[3] );  //4
+          vertex( B[3] );  //4
+          vertex( B[2] );  //5
+          vertex( I[2] );  //2
+         
+          vertex( B[1] );  //8
+          vertex( B[2] );  //5
+          vertex( T[2] );  //6
+          vertex( T[2] ); //6
+          vertex( T[1] ); //7
+          vertex( B[1] );  //8
+          
+        endShape(CLOSE);
+      }
+      
+      strokeWeight( 2 );
+      stroke( 0, 0, 12 );
+    }
+    // in wireframe mode
+    else
+    {
+      strokeWeight( 1 );
+      // if not in gamut mode
+      if ( _g != 1 )
+      {
+        stroke( 0, 0, 12 );
+      }
+      else
+      {
+        stroke( h, 40, 60 );
+      }
+    }
+
+    noFill();
+    
+    //---- draw outline of tube
+    
+    // 2  __  1  i
+    // 3 |__  4  a
+    // 3    | 5  b
+    beginShape();
+      vertex( I[1] );  //1
+      vertex( I[0] );  //2
+      vertex( B[0] );  //3
+      vertex( B[1] );  //4
+      vertex( T[1] );  //5
+    endShape();
+
+    // 1  __  2 i
+    // 4  __| 3 a
+    // 5 |      b   
+    beginShape();
+      vertex( I[2] );  //1
+      vertex( I[3] );  //2
+      vertex( B[3] );  //3
+      vertex( B[2] );  //4
+      vertex( T[2] );  //5
+    endShape();
+  }
+  
+  // overloaded core functions
+  void vertex( PVector v )
+  {
+    vertex( v.x, v.y, v.z );
+  }
+  
+  void vertex( PVector v, float a, float b )
+  {
+    vertex( v.x, v.y, v.z, a, b );
+  }
+

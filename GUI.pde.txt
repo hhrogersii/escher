@@ -1,0 +1,168 @@
+  //---- draw graphical user interface
+  
+  void drawGUI()
+  {
+    camera();
+    noLights();
+
+    // if there is not an active hover state
+    if ( _l == false )
+    { 
+      // if a mouse button was pressed, lock hover state until mouse button is released
+      if ( ( btnCycle.update() | btnRevolve.update() | btnGamut.update() | btnWireframe.update() ) && mousePressed )
+      {
+        _l = true;
+      }
+    }
+    
+    btnCycle.display();
+    btnRevolve.display();
+    btnGamut.display();
+    btnWireframe.display();
+  }
+  
+  //---- io controls
+
+  void mouseReleased()
+  {
+    // release lock hover state
+    _l = false;
+    
+    // if a button is pressed, change its state and invert its value
+    if ( btnCycle.pressed() )
+    {
+      _c = 1 - _c; // start/stop cycling
+    }
+    if ( btnRevolve.pressed() )
+    {
+      _r = 1 - _r; // start/stop revolution
+    }
+    if ( btnGamut.pressed() )
+    {
+      _g = 1 - _g; // show/hide gamut
+    }
+    if ( btnWireframe.pressed() )
+    {
+      _w = 1 - _w; // show/hide wireframe
+    }
+  }
+  
+  void keyReleased()
+  {
+    switch( key ) 
+    {
+      case 's': 
+        _s = _s - 5; // decrease scale
+        break;
+      case 'S': 
+        _s = _s + 5; // increase scale
+        break;
+      case 'c': 
+        _c = 1 - _c; // start/stop cycling
+        break;
+      case 'r': 
+        _r = 1 - _r; // start/stop revolution
+        break;
+      case 'g': 
+        _g = 1 - _g; // show/hide gamut
+        break;
+      case 'w': 
+        _w = 1 - _w; // show/hide wireframe
+        break;
+    }
+  }
+  
+  //---- gui classes
+  
+  class Button
+  {
+    float x, y;
+    float w, h;
+
+    String label;
+    color clrBase, clrHighlight, clrBorder, clrCurrent;
+
+    boolean depressed = false;
+
+    // constructor
+    Button( float xPosition, float yPosition, color btnColor, String btnText ) 
+    {
+      x = xPosition;
+      y = yPosition;
+      
+      label = btnText;
+      
+      w = textWidth(label) + 8;
+      h = textAscent() + textDescent() + 8;
+      
+      clrBase = clrCurrent = btnColor;
+      clrBorder = color( hue(btnColor), saturation(btnColor), brightness(btnColor)-30 );
+      clrHighlight = color( hue(btnColor), saturation(btnColor), brightness(btnColor)+30 );
+    }
+    
+    void display() 
+    {
+      stroke( clrBorder );
+      strokeWeight( 1 );
+      fill( clrCurrent );
+      rect( x, y, w, h );
+      fill( clrBorder );
+      text( label, x + 4, y + h - 6 );
+    }
+  
+    boolean update() 
+    {
+      if ( over() )
+      {
+        clrCurrent = clrHighlight;
+        return true;
+      } 
+      else if ( depressed == false )
+      {
+        clrCurrent = clrBase;
+        return false;
+      }
+      else
+      {
+        return false;
+      }
+    }
+  
+    boolean pressed() 
+    {
+      if ( over() ) 
+      {
+        if ( depressed == false )
+        {
+          depressed = true;
+          clrCurrent = clrHighlight;
+        } 
+        else 
+        {
+          depressed = false;
+        }
+        return true;
+      }
+      else
+      {
+        return false;
+      }    
+    }
+  
+    boolean over() 
+    {
+      if (
+        mouseX >= x && mouseX <= x+w && 
+        mouseY >= y && mouseY <= y+h
+      ) 
+      {
+        return true;
+      }
+      return false;
+    }
+    
+    float right()
+    {
+      return x+w;
+    }
+  }
